@@ -1,98 +1,276 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TimeNet Biométrico API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST de integração com o sistema biométrico **ZKTeco TimeNet** do **Tribunal da Comarca de Luanda**, desenvolvida em **NestJS** com base de dados SQLite.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tecnologias
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Camada | Tecnologia |
+|---|---|
+| Framework | NestJS (Node.js + TypeScript) |
+| Base de dados | SQLite — `TimeNet.db` (modo leitura) |
+| Driver SQLite | `better-sqlite3` (síncrono) |
+| Documentação | Swagger / OpenAPI (`/docs`) |
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## Infraestrutura
 
-## Compile and run the project
+| Recurso | Detalhe |
+|---|---|
+| Terminal biométrico | BIOMETRICO RH (K14/ID) |
+| IP do terminal | 10.182.13.13 |
+| Base de dados | TimeNet.db |
+| Funcionários registados | 245 |
+| Departamentos | 16 |
+| Registos de ponto (punches) | 66 084 |
+| Day Summary (frequência diária) | 1 007 070 |
+| Detalhes entrada/saída | 100 944 |
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+## Instalação e arranque
 
 ```bash
-# unit tests
-$ npm run test
+# Instalar dependências
+npm install
 
-# e2e tests
-$ npm run test:e2e
+# Modo desenvolvimento (hot reload)
+npm run start:dev
 
-# test coverage
-$ npm run test:cov
+# Modo produção
+npm run start:prod
 ```
 
-## Deployment
+A API fica disponível em `http://localhost:3000`.  
+A documentação Swagger fica em `http://localhost:3000/docs`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Módulos e Endpoints
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+### Departamentos — `/departments`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/departments` | Listar todos os departamentos com total de funcionários |
+| `GET` | `/departments/:id` | Buscar departamento por ID |
+| `GET` | `/departments/:id/employees` | Listar funcionários de um departamento |
+
+---
+
+### Funcionários — `/employees`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/employees` | Listar funcionários (com filtros) |
+| `GET` | `/employees/pin/:pin` | Buscar funcionário pelo PIN biométrico |
+| `GET` | `/employees/:id` | Buscar funcionário por ID |
+
+**Query parameters de `/employees`:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `active` | `0` ou `1` | Filtrar por estado (ativo/inativo) |
+| `department_id` | `number` | Filtrar por departamento |
+| `search` | `string` | Pesquisa por nome ou PIN |
+| `limit` | `number` | Registos por página (defeito: 50) |
+| `offset` | `number` | Paginação (defeito: 0) |
+
+---
+
+### Registos de Ponto — `/punches`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/punches` | Listar registos de ponto com filtros |
+| `GET` | `/punches/date/:date` | Todos os registos de uma data (YYYY-MM-DD) |
+| `GET` | `/punches/summary` | Resumo de presenças por funcionário num período |
+| `GET` | `/punches/employee/:id` | Registos de ponto de um funcionário |
+
+**Query parameters de `/punches`:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `employee_id` | `number` | Filtrar por funcionário |
+| `date_from` | `YYYY-MM-DD` | Data de início |
+| `date_to` | `YYYY-MM-DD` | Data de fim |
+| `terminal_id` | `number` | Filtrar por terminal biométrico |
+| `limit` | `number` | Defeito: 100 |
+| `offset` | `number` | Paginação |
+
+---
+
+### Frequência / Assiduidade — `/attendance`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/attendance/summary` | Resumo diário de frequência (`att_day_summary`) |
+| `GET` | `/attendance/details` | Detalhes diários de entrada/saída (`att_day_details`) |
+| `GET` | `/attendance/daily/:date` | Presença de todos os funcionários ativos numa data |
+| `GET` | `/attendance/monthly/:year/:month` | Relatório mensal simplificado por funcionário |
+
+**Query parameters de `/attendance/summary`:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `employee_id` | `number` | Filtrar por funcionário |
+| `date_from` | `YYYY-MM-DD` | Data de início |
+| `date_to` | `YYYY-MM-DD` | Data de fim |
+| `department_id` | `number` | Filtrar por departamento |
+| `limit` | `number` | Defeito: 100 |
+| `offset` | `number` | Paginação |
+
+**Query parameters de `/attendance/monthly/:year/:month`:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `department_id` | `number` | Filtrar por departamento (opcional) |
+
+---
+
+### Terminais Biométricos — `/terminals`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/terminals` | Listar todos os terminais biométricos |
+| `GET` | `/terminals/:id` | Detalhes completos de um terminal |
+| `GET` | `/terminals/:id/stats` | Estatísticas de uso (punches hoje e no mês) |
+
+---
+
+### Turnos e Horários — `/shifts`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/shifts` | Listar todos os turnos |
+| `GET` | `/shifts/timetables` | Listar todos os horários configurados |
+| `GET` | `/shifts/:id/details` | Detalhes dos dias de um turno |
+| `GET` | `/shifts/employee/:id` | Turnos atribuídos a um funcionário |
+
+---
+
+### Relatórios — `/reports`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/reports/dashboard` | Dashboard geral — totais e últimas marcações |
+| `GET` | `/reports/absent/:date` | Funcionários ausentes numa data |
+| `GET` | `/reports/late/:date` | Funcionários com atraso numa data |
+| `GET` | `/reports/top-presence` | Ranking de presença num período |
+| `GET` | `/reports/monthly-declaration` | **Relatório de Declaração Mensal** |
+
+---
+
+#### `GET /reports/monthly-declaration` — Relatório de Declaração Mensal
+
+Gera o relatório de declaração mensal por funcionário, com o mesmo formato de colunas do relatório impresso pelo sistema TimeNet:
+
+- Entrada/Saída (check-in / check-out)
+- Break
+- Late-In (atraso)
+- Early-Out (saída antecipada)
+- Ausência
+- Horas Requeridas (Require Work)
+- Horas Trabalhadas (Round Work)
+- Overtime — OT1, OT2, OT3
+- Horas de Exceção
+- **Linha de Totais** por funcionário
+
+**Query parameters:**
+
+| Parâmetro | Obrigatório | Tipo | Descrição |
+|---|---|---|---|
+| `date_from` | ✅ | `YYYY-MM-DD` | Início do período |
+| `date_to` | ✅ | `YYYY-MM-DD` | Fim do período |
+| `department_id` | — | `number` | Filtrar por secção / departamento |
+| `employee_id` | — | `number` | Filtrar por funcionário individual |
+
+**Exemplos de chamada:**
+
+```
+# 5ª Secção — período de Março 2026
+GET /reports/monthly-declaration?date_from=2026-03-02&date_to=2026-04-01&department_id=5
+
+# Funcionário individual
+GET /reports/monthly-declaration?date_from=2026-03-02&date_to=2026-04-01&employee_id=85
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Estrutura da resposta:**
 
-## Resources
+```json
+[
+  {
+    "id": 85,
+    "pin": "85",
+    "name": "Beatriz Miguel",
+    "department": "5ª Secção da Sala Criminal",
+    "days": [
+      {
+        "date": "2026-03-02",
+        "dayOfWeek": "Seg",
+        "schedule": "HORARIO UNICO",
+        "checkIn": "07:56",
+        "checkOut": "15:12",
+        "break": "00:00",
+        "lateIn": "00:00",
+        "earlyOut": "00:00",
+        "absence": "00:00",
+        "requireWork": "07:00",
+        "roundWork": "07:16",
+        "ot1": "00:16",
+        "ot2": "00:00",
+        "ot3": "00:00",
+        "exceptionHours": "00:00"
+      }
+    ],
+    "totals": {
+      "daysWorked": 24,
+      "break": "00:00",
+      "lateIn": "00:15",
+      "earlyOut": "00:00",
+      "absence": "07:00",
+      "requireWork": "189:00",
+      "roundWork": "176:42",
+      "ot1": "03:22",
+      "ot2": "00:00",
+      "ot3": "00:00",
+      "exceptionHours": "00:00"
+    }
+  }
+]
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Estrutura do Projeto
 
-## Support
+```
+src/
+├── app.module.ts
+├── main.ts                        # Arranque — porta 3000, Swagger em /docs
+├── database/
+│   └── database.service.ts        # Ligação SQLite (better-sqlite3, readonly)
+├── departments/                   # Módulo de departamentos
+├── employees/                     # Módulo de funcionários
+├── punches/                       # Módulo de registos de ponto
+├── attendance/                    # Módulo de frequência / assiduidade
+├── terminals/                     # Módulo de terminais biométricos
+├── shifts/                        # Módulo de turnos e horários
+└── reports/                       # Módulo de relatórios
+    ├── reports.controller.ts
+    └── reports.service.ts
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Swagger
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Toda a API está documentada interativamente em:
 
-## License
+```
+http://localhost:3000/docs
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Os endpoints estão agrupados por módulo (tags): Funcionários, Departamentos, Registos de Ponto, Frequência / Assiduidade, Terminais Biométricos, Turnos e Horários, Relatórios.
